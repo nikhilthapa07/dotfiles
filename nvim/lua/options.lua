@@ -5,6 +5,9 @@ o.number = true
 -- line numbers on the left are shown relative to the current cursor line.
 o.relativenumber = true
 
+-- minimum scroll space/lines above and below the cursor in Neovim
+o.scrolloff = 4
+
 -- Sync clipboard between OS and Neovim.
 -- Schedule the setting after `UiEnter` because it can increase startup-time.
 -- Remove this option if you want your OS clipboard to remain independent.

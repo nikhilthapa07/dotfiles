@@ -9,6 +9,10 @@ set("n", "<M-j>", "<C-w>j", { desc = "Focus down split" })
 set("n", "<M-k>", "<C-w>k", { desc = "Focus up split" })
 set("n", "<M-l>", "<C-w>l", { desc = "Focus right split" })
 
+-- center cursor line when moving half page up or down
+set("n", "<C-u>", "<C-u>zz")
+set("n", "<C-d>", "<C-d>zz")
+
 -- move visual block vertically
 set("v", "J", ":m '>+1<CR>gv=gv")
 set("v", "K", ":m '<-2<CR>gv=gv")
