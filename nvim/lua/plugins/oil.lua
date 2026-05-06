@@ -14,5 +14,10 @@ return {
 			"<CMD>Oil<CR>",
 			desc = "Open parent directory",
 		},
+		{
+			"<leader>o",
+			"<CMD>vsplit | Oil<CR>",
+			desc = "Open parent directory in split",
+		},
 	},
 }
