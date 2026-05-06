@@ -12,9 +12,9 @@ return {
 				vue = { "prettier" },
 				html = { "prettier" },
 				css = { "prettier" },
-				csss = { "prettier" },
+				scss = { "prettier" },
 				json = { "prettier" },
-				python = { "isort", "black" },
+				python = { "isort", "ruff" },
 			},
 		})
 
