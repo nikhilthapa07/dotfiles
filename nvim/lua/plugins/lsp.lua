@@ -19,7 +19,6 @@ return {
 	},
 	{
 		"neovim/nvim-lspconfig",
-		dependencies = { "hoffs/omnisharp-extended-lsp.nvim" },
 		lazy = false,
 		config = function()
 			local capabilities = require("cmp_nvim_lsp").default_capabilities()
@@ -40,25 +39,6 @@ return {
 			vim.lsp.config("vue_ls", {})
 			vim.lsp.enable("vue_ls")
 
-			--[[ 
-			-- use ts_ls over vtsls
-			vim.lsp.config("ts_ls", {
-				init_options = {
-					plugins = {
-						{
-							name = "@vue/typescript-plugin",
-							location = vim.fn.stdpath("data")
-								.. "/mason/packages/vue-language-server/node_modules/@vue/language-server",
-							languages = { "vue" },
-							configNamespace = "typescript",
-						},
-					},
-				},
-				filetypes = { "typescript", "javascript", "javascriptreact", "typescriptreact", "vue" },
-			}) 
-			vim.lsp.enable("ts_ls")
-			]]
-			-- use vtsls over ts_ls
 			vim.lsp.config("vtsls", {
 				settings = {
 					vtsls = {
