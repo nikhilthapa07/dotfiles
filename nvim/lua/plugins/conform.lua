@@ -14,7 +14,7 @@ return {
 				css = { "prettier" },
 				scss = { "prettier" },
 				json = { "prettier" },
-				python = { "isort", "ruff" },
+				python = { "isort", "ruff_format" },
 			},
 		})
 
