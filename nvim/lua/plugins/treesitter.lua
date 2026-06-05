@@ -13,6 +13,7 @@ return {
 				"tsx",
 				"html",
 				"css",
+				"scss",
 				"vue",
 				"python",
 				"json",

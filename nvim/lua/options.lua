@@ -1,5 +1,6 @@
 local o = vim.o
 
+o.guicursor = ""
 -- show line numbers default
 o.number = true
 -- line numbers on the left are shown relative to the current cursor line.
