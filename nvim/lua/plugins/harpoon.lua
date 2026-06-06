@@ -3,56 +3,31 @@ return {
 	branch = "harpoon2",
 	dependencies = { "nvim-lua/plenary.nvim" },
 	opts = {},
-	keys = {
-		{
-			"<leader>a",
-			function()
-				require("harpoon"):list():add()
-			end,
-			desc = "Harpoon: Add file",
-		},
-		{
-			"<leader>A",
-			function()
-				require("harpoon"):list():prepend()
-			end,
-			desc = "Harpoon: Prepend file",
-		},
-		{
-			"<C-e>",
-			function()
-				local harpoon = require("harpoon")
-				harpoon.ui:toggle_quick_menu(harpoon:list())
-			end,
-			desc = "Harpoon: Toggle quick menu",
-		},
-		{
-			"<leader>1",
-			function()
-				require("harpoon"):list():select(1)
-			end,
-			desc = "Harpoon: Select file 1",
-		},
-		{
-			"<leader>2",
-			function()
-				require("harpoon"):list():select(2)
-			end,
-			desc = "Harpoon: Select file 2",
-		},
-		{
-			"<leader>3",
-			function()
-				require("harpoon"):list():select(3)
-			end,
-			desc = "Harpoon: Select file 3",
-		},
-		{
-			"<leader>4",
-			function()
-				require("harpoon"):list():select(4)
-			end,
-			desc = "Harpoon: Select file 4",
-		},
-	},
+	config = function()
+		local harpoon = require("harpoon")
+
+		-- REQUIRED
+		harpoon:setup()
+		-- REQUIRED
+
+		vim.keymap.set("n", "<leader>a", function()
+			harpoon:list():add()
+		end)
+		vim.keymap.set("n", "<C-e>", function()
+			harpoon.ui:toggle_quick_menu(harpoon:list())
+		end)
+
+		vim.keymap.set("n", "<C-h>", function()
+			harpoon:list():select(1)
+		end)
+		vim.keymap.set("n", "<C-t>", function()
+			harpoon:list():select(2)
+		end)
+		vim.keymap.set("n", "<C-n>", function()
+			harpoon:list():select(3)
+		end)
+		vim.keymap.set("n", "<C-s>", function()
+			harpoon:list():select(4)
+		end)
+	end,
 }
