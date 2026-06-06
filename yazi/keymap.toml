@@ -1,4 +1,0 @@
-[[mgr.prepend_keymap]]
-on = [ "T" ]
-run = 'shell --block "~/.config/yazi/yazi-tmux.sh"'
-desc = "Open tmux session for current folder"
