@@ -35,6 +35,8 @@ set("n", "<Left>", ":bprevious<CR>")
 -- use better escape plugin to avoid delay
 -- set("i", "jj", "<ESC>")
 
+vim.keymap.set("n", "<C-f>", "<cmd>silent !tmux neww tmux-sessionizer<CR>")
+
 -- save current buffer
 set("n", "<leader>w", "<cmd>noautocmd write<CR>", {
 	desc = "Save file without formatting",

@@ -1,0 +1,5 @@
+TS_SEARCH_PATHS=(
+$HOME/.config/
+$HOME/coding/
+$HOME/office-work/
+)
