@@ -4,10 +4,10 @@ local set = vim.keymap.set
 set("n", "<Esc>", "<cmd>nohlsearch<CR>")
 
 -- keybinds to make split navigation easier
-set("n", "<M-h>", "<C-w>h", { desc = "Focus left split" })
-set("n", "<M-j>", "<C-w>j", { desc = "Focus down split" })
-set("n", "<M-k>", "<C-w>k", { desc = "Focus up split" })
-set("n", "<M-l>", "<C-w>l", { desc = "Focus right split" })
+-- set("n", "<M-h>", "<C-w>h", { desc = "Focus left split" })
+-- set("n", "<M-j>", "<C-w>j", { desc = "Focus down split" })
+-- set("n", "<M-k>", "<C-w>k", { desc = "Focus up split" })
+-- set("n", "<M-l>", "<C-w>l", { desc = "Focus right split" })
 
 -- center cursor line when moving half page up or down
 set("n", "<C-u>", "<C-u>zz")
@@ -36,6 +36,10 @@ set("n", "<Left>", ":bprevious<CR>")
 -- set("i", "jj", "<ESC>")
 
 vim.keymap.set("n", "<C-f>", "<cmd>silent !tmux neww tmux-sessionizer<CR>")
+vim.keymap.set("n", "<M-h>", "<cmd>silent !tmux neww tmux-sessionizer -s 0<CR>")
+vim.keymap.set("n", "<M-t>", "<cmd>silent !tmux neww tmux-sessionizer -s 1<CR>")
+vim.keymap.set("n", "<M-n>", "<cmd>silent !tmux neww tmux-sessionizer -s 2<CR>")
+vim.keymap.set("n", "<M-s>", "<cmd>silent !tmux neww tmux-sessionizer -s 3<CR>")
 
 -- save current buffer
 set("n", "<leader>w", "<cmd>noautocmd write<CR>", {

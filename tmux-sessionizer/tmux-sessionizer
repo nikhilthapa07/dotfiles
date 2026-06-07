@@ -1,5 +1,27 @@
 #!/usr/bin/env bash
 
+# Parse -s flag for switching to session by index
+switch_index=""
+while getopts "s:" opt; do
+    case $opt in
+        s) switch_index="$OPTARG" ;;
+    esac
+done
+shift $((OPTIND - 1))
+
+if [[ -n $switch_index ]]; then
+    selected=$(tmux list-sessions -F "#{session_name}" 2>/dev/null | sed -n "$((switch_index + 1))p")
+    if [[ -z $selected ]]; then
+        exit 0
+    fi
+    if [[ -n $TMUX ]]; then
+        tmux switch-client -t "$selected"
+    else
+        tmux attach-session -t "$selected"
+    fi
+    exit 0
+fi
+
 if [[ $# -eq 1 ]]; then
     selected=$1
 else
@@ -13,19 +35,15 @@ fi
 selected_name=$(basename "$selected" | tr '.' '_')
 tmux_running=$(pgrep tmux)
 
-# No tmux server running
 if [[ -z $TMUX ]] && [[ -z $tmux_running ]]; then
     tmux new-session -s "$selected_name" -c "$selected"
     exit 0
 fi
 
-# Create session if it doesn't exist
 if ! tmux has-session -t="$selected_name" 2>/dev/null; then
     tmux new-session -ds "$selected_name" -c "$selected"
 fi
 
-# Inside tmux -> switch client
-# Outside tmux -> attach
 if [[ -n $TMUX ]]; then
     tmux switch-client -t "$selected_name"
 else
