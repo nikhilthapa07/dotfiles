@@ -77,6 +77,13 @@ return {
 			})
 			vim.lsp.enable("html")
 
+			vim.lsp.config("clangd", {
+				filetypes = { "c", "cpp" },
+				capabilities = capabilities,
+			})
+			vim.lsp.enable("clangd")
+
+
 			vim.lsp.config("emmet_language_server", {
 				filetypes = { "html", "css", "javascriptreact", "typescriptreact", "vue" },
 				capabilities = capabilities,
@@ -98,24 +105,6 @@ return {
 				capabilities = capabilities,
 			})
 			vim.lsp.enable("pyright")
-
-			vim.lsp.config("rust_analyzer", {
-				settings = {
-					["rust-analyzer"] = {
-						files = {
-							watcher = "server",
-						},
-						check = {
-							command = "clippy",
-						},
-						diagnostics = {
-							enable = false,
-						},
-					},
-				},
-				capabilities = capabilities,
-			})
-			vim.lsp.enable("rust_analyzer")
 		end,
 	},
 }
