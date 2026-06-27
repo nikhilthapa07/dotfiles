@@ -9,3 +9,11 @@ autocmd("LspAttach", {
 		})
 	end,
 })
+
+-- Highlight on yank
+autocmd("TextYankPost", {
+	group = vim.api.nvim_create_augroup("yank", { clear = true }),
+	callback = function()
+		vim.hl.on_yank()
+	end,
+})
