@@ -3,6 +3,9 @@ local set = vim.keymap.set
 -- clear search highlights
 set("n", "<Esc>", "<cmd>nohlsearch<CR>")
 
+-- map netrw
+set("n", "<leader>pv", vim.cmd.Ex)
+
 -- keybinds to make split navigation easier
 -- set("n", "<M-h>", "<C-w>h", { desc = "Focus left split" })
 -- set("n", "<M-j>", "<C-w>j", { desc = "Focus down split" })

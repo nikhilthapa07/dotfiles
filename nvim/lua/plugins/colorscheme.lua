@@ -7,25 +7,16 @@ function ColorMyPencils(color)
 end
 
 return {
-	{
-		"olimorris/onedarkpro.nvim",
-		priority = 1000,
-		config = function()
-			-- ColorMyPencils("onedark")
-		end,
-	},
-	{
-		"rose-pine/neovim",
-		name = "rose-pine",
-		config = function()
-			require("rose-pine").setup({
-				disable_background = true,
-				styles = {
-					italic = false,
-				},
-			})
+	"rose-pine/neovim",
+	name = "rose-pine",
+	config = function()
+		require("rose-pine").setup({
+			disable_background = true,
+			styles = {
+				italic = false,
+			},
+		})
 
-			ColorMyPencils()
-		end,
-	},
+		ColorMyPencils()
+	end,
 }
