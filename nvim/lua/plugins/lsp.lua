@@ -72,7 +72,7 @@ return {
 			vim.lsp.enable("jsonls")
 
 			vim.lsp.config("html", {
-				filetypes = { "html" },
+				filetypes = { "html", "astro" },
 				capabilities = capabilities,
 			})
 			vim.lsp.enable("html")
@@ -82,7 +82,6 @@ return {
 				capabilities = capabilities,
 			})
 			vim.lsp.enable("clangd")
-
 
 			vim.lsp.config("emmet_language_server", {
 				filetypes = { "html", "css", "javascriptreact", "typescriptreact", "vue" },
@@ -105,6 +104,19 @@ return {
 				capabilities = capabilities,
 			})
 			vim.lsp.enable("pyright")
+
+			vim.lsp.config("astro", {
+				cmd = { "astro-ls", "--stdio" },
+				filetypes = { "astro" },
+				init_options = {
+					typescript = {
+						tsdk = vim.fn.stdpath("data")
+							.. "/mason/packages/vtsls/node_modules/@vtsls/language-server/node_modules/typescript/lib",
+					},
+				},
+				capabilities = capabilities,
+			})
+			vim.lsp.enable("astro")
 		end,
 	},
 }

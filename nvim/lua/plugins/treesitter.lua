@@ -15,6 +15,7 @@ return {
 				"css",
 				"scss",
 				"vue",
+				"astro",
 				"python",
 				"json",
 				"gitignore",

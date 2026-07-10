@@ -14,6 +14,7 @@ return {
 				css = { "prettier" },
 				scss = { "prettier" },
 				json = { "prettier" },
+				astro = { "prettier" },
 				python = { "isort", "ruff_format" },
 			},
 		})
