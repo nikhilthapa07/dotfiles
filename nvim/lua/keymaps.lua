@@ -45,15 +45,32 @@ set("n", "<leader>w", "<cmd>noautocmd write<CR>", {
 	desc = "Save file without formatting",
 })
 
--- Run current JavaScript file in a horizontal split terminal
-set("n", "<leader>rj", function()
-	vim.cmd("split | terminal node %")
-end, { desc = "Run current JavaScript file" })
-
--- Run current Python file in a horizontal split terminal
 set("n", "<leader>rp", function()
-	vim.cmd("split | terminal python3 %")
-end, { desc = "Run current python file" })
+	local ft = vim.bo.filetype
+	local file = vim.fn.expand("%:p")
+
+	local commands = {
+		python = "python3 " .. file,
+		javascript = "node " .. file,
+		typescript = "tsx " .. file,
+		lua = "lua " .. file,
+		sh = "bash " .. file,
+		c = string.format("gcc %q -o /tmp/%s && /tmp/%s", file, vim.fn.expand("%:t:r"), vim.fn.expand("%:t:r")),
+	}
+
+	local cmd = commands[ft]
+
+	if not cmd then
+		vim.notify(
+			string.format("Running '%s' files is not supported.", ft),
+			vim.log.levels.INFO,
+			{ title = "Run File" }
+		)
+		return
+	end
+
+	vim.cmd("vsplit | terminal " .. cmd)
+end, { desc = "Run current file" })
 
 vim.keymap.set("n", "<leader>co", function()
 	vim.lsp.buf.code_action({
