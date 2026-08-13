@@ -5,25 +5,24 @@ return {
 		lazy = false,
 		init = function()
 			local parsers = {
-				"lua",
-				"vim",
-				"vimdoc",
+				"python",
 				"javascript",
 				"typescript",
+				"c",
+				"go",
+				"lua",
 				"tsx",
+				"vue",
 				"html",
 				"css",
 				"scss",
-				"vue",
-				"astro",
-				"python",
 				"json",
-				"gitignore",
-				"c",
-				"cpp"
+				"vim",
+				"vimdoc",
+				"gitignore"
 			}
 
-			local group = vim.api.nvim_create_augroup("ThePrimeagenTreesitter", { clear = true })
+			local group = vim.api.nvim_create_augroup("treesitter", { clear = true })
 			vim.api.nvim_create_autocmd({ "BufEnter", "FileType" }, {
 				group = group,
 				callback = function()
