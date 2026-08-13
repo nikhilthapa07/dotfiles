@@ -1,2 +1,19 @@
-.DS_Store
-github-copilot/
+# Ignore everything
+*
+
+# Allow these folders
+!kitty/
+!kitty/**
+
+!tmux/
+!tmux/**
+
+!tmux-sessionizer/
+!tmux-sessionizer/**
+
+!nvim/
+!nvim/**
+
+!config/
+!config/**
+
