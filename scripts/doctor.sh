@@ -41,29 +41,37 @@ else
 	FAIL "Homebrew not installed (or not in PATH)"
 fi
 
-# --- Required formulas -----------------------------------------------------
-# pkg|binary-to-check-if-formula-absent (falls back to warning instead of failure
-# when the tool exists but was installed outside Homebrew, e.g. /usr/bin/git)
-REQUIRED_BREW=(
-	"git|git"
-	"go|go"
+# --- Required formulas -------------------------------------------------------
+# Derived from the Brewfile (single source of truth): every uncommented
+# `brew "name"` line is required. Only the pkg->binary alias map below is
+# manual, for tools whose binary name differs from the formula name
+# (or shares one with another formula). Falls back to a warning instead of a
+# failure when the tool exists but was installed outside Homebrew.
+BREWFILE="$DOTFILES_DIR/Brewfile"
+PKG_ALIASES=(
 	"neovim|nvim"
-	"tmux|tmux"
-	"fzf|fzf"
-	"fd|fd"
 	"ripgrep|rg"
-	"lazygit|lazygit"
-	"tree-sitter|tree-sitter"
 	"tree-sitter-cli|tree-sitter"
-	"php@8.2|"
-	"python@3.12|"
-	"zsh-autosuggestions|"
 )
-info "> Required Homebrew formulas"
+bin_for() { # $1 = formula name -> binary to check (or '' for none)
+	local pkg="$1" entry
+	for entry in "${PKG_ALIASES[@]}"; do
+		[[ "${entry%%|*}" == "$pkg" ]] && { printf '%s' "${entry##*|}"; return; }
+	done
+	printf '%s' "$pkg"
+}
+required_pkgs=()
+while IFS= read -r pkg; do
+	required_pkgs+=("$pkg")
+done < <(grep -E '^[[:space:]]*brew[[:space:]]+"[^"]+"' "$BREWFILE" | sed -E 's/^[[:space:]]*brew[[:space:]]+"([^"]+)".*/\1/')
+
+info "> Required Homebrew formulas (from Brewfile)"
 if command -v brew >/dev/null 2>&1; then
-	for entry in "${REQUIRED_BREW[@]}"; do
-		pkg="${entry%%|*}"
-		bin="${entry##*|}"
+	if [[ "${#required_pkgs[@]}" -eq 0 ]]; then
+		FAIL "no brew formulas found in $BREWFILE"
+	fi
+	for pkg in "${required_pkgs[@]}"; do
+		bin="$(bin_for "$pkg")"
 		if brew list --formula "$pkg" >/dev/null 2>&1; then
 			ok "$pkg"
 		elif [[ -n "$bin" ]] && command -v "$bin" >/dev/null 2>&1; then

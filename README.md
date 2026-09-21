@@ -114,8 +114,8 @@ Programs are declared in the `Brewfile` (single source of truth).
 
 3. Commit and push.
 
-If you remove or rename a program that `scripts/doctor.sh` checks (the
-`REQUIRED_BREW` list), update that list too so the health check stays honest.
+`scripts/doctor.sh` reads the Brewfile directly, so the health check always
+matches exactly what you require — no second list to keep in sync.
 
 ### Editing configs
 
@@ -157,14 +157,13 @@ bash scripts/doctor.sh
 ## Dependencies
 
 `Brewfile` declares *system-level* dependencies and is the single source of
-truth for them. `brew bundle` (via `scripts/brew.sh`) installs exactly that.
+truth for them. `brew bundle` (via `scripts/brew.sh`) installs exactly that,
+and `doctor.sh` reads the same file to verify it. Edit the Brewfile and the
+health check follows automatically.
 
-Required tools include: `neovim`, `tmux`, `git`, `go`, `php@8.2`,
+Required tools include: `neovim`, `tmux`, `git`, `pnpm`, `uv`, `go`,
 `python@3.12`, `tree-sitter(-cli)`, `fzf`, `fd`, `ripgrep`, `lazygit`,
 `zsh-autosuggestions`, and the `kitty` cask.
-
-Optional tools you had installed but are not strictly required by the configs
-are documented (commented out) inside the Brewfile — uncomment to include them.
 
 ### Node.js and nvm
 
@@ -234,7 +233,8 @@ Run the read-only health check any time:
 ```
 
 Shows `[OK]` / `[WARN]` / `[FAIL]` for architecture, Homebrew, required
-formulas, required binaries, symlinks, Neovim, tmux, Kitty, Zsh, and Node.
+formulas (derived from the `Brewfile`), required binaries, symlinks, Neovim,
+tmux, Kitty, Zsh, Node, and opencode.
 Exits non-zero if any check fails.
 
 ## Manual steps (can't be automated)
