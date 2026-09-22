@@ -47,10 +47,11 @@ cd ~/dotfiles
 3. Installs Homebrew if missing (Apple Silicon path `/opt/homebrew`) and updates it.
 4. Installs oh-my-zsh and the plugin clones (`zsh-nvm`, `zsh-autosuggestions`).
 5. Installs all system dependencies from the `Brewfile` via `brew bundle`.
-6. Installs opencode via the official script (if not already present).
-7. Creates directories and symlinks all configs into `~`.
-8. Syncs Neovim plugins with lazy.nvim (first run downloads everything).
-9. Runs `doctor.sh` and prints a summary.
+6. Installs kitty via the official installer (not Homebrew).
+7. Installs opencode via the official script (if not already present).
+8. Creates directories and symlinks all configs into `~`.
+9. Syncs Neovim plugins with lazy.nvim (first run downloads everything).
+10. Runs `doctor.sh` and prints a summary.
 
 It is fully idempotent — run it as many times as you like.
 
@@ -162,8 +163,19 @@ and `doctor.sh` reads the same file to verify it. Edit the Brewfile and the
 health check follows automatically.
 
 Required tools include: `neovim`, `tmux`, `git`, `pnpm`, `uv`, `go`,
-`python@3.12`, `tree-sitter(-cli)`, `fzf`, `fd`, `ripgrep`, `lazygit`,
-`zsh-autosuggestions`, and the `kitty` cask.
+`python@3.12`, `tree-sitter(-cli)`, `fzf`, `fd`, `ripgrep`, `lazygit`, and
+`zsh-autosuggestions`.
+
+### kitty
+
+`kitty` is **not** installed by Homebrew. It is installed via the official
+installer (to `/Applications/kitty.app`) with:
+
+```bash
+curl -L https://sw.kovidgoyal.net/kitty/installer.sh | sh /dev/stdin launch=n
+```
+
+Re-run that command to update kitty.
 
 ### Node.js and nvm
 

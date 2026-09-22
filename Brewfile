@@ -30,7 +30,3 @@ brew "ripgrep"
 brew "lazygit"
 # zsh autosuggestions (also installed as an oh-my-zsh custom plugin)
 brew "zsh-autosuggestions"
-
-# --- Required casks ---
-# terminal emulator whose config lives in this repo
-cask "kitty"

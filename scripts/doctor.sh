@@ -152,6 +152,11 @@ fi
 
 # --- Kitty config -----------------------------------------------------------
 info "> Kitty config"
+if [[ -x /Applications/kitty.app/Contents/MacOS/kitty ]]; then
+	ok "kitty binary present"
+else
+	FAIL "kitty not found at /Applications/kitty.app (run install.sh)"
+fi
 if [[ -f "$DOTFILES_DIR/config/kitty/kitty.conf" ]]; then
 	ok "kitty.conf present"
 	if [[ -f "$DOTFILES_DIR/config/kitty/current-theme.conf" ]]; then

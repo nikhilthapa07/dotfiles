@@ -113,7 +113,19 @@ info "Installing dependencies via Brewfile..."
 ok "Dependencies installed"
 
 # ---------------------------------------------------------------------------
-# 6. opencode
+# 6. kitty (official installer — not Homebrew)
+# ---------------------------------------------------------------------------
+info "Ensuring kitty..."
+if [[ -x /Applications/kitty.app/Contents/MacOS/kitty ]]; then
+	info "kitty already present"
+else
+	info "Installing kitty (official installer)..."
+	curl -L https://sw.kovidgoyal.net/kitty/installer.sh | sh /dev/stdin launch=n
+fi
+ok "kitty ready"
+
+# ---------------------------------------------------------------------------
+# 7. opencode
 # ---------------------------------------------------------------------------
 info "Ensuring opencode..."
 if [[ ! -x "$HOME/.opencode/bin/opencode" ]]; then
@@ -125,7 +137,7 @@ fi
 ok "opencode ready"
 
 # ---------------------------------------------------------------------------
-# 7. Directories + symlinks
+# 8. Directories + symlinks
 # ---------------------------------------------------------------------------
 info "Creating required directories..."
 mkdir -p "$HOME/.config"
@@ -135,7 +147,7 @@ info "Linking dotfiles..."
 "$DOTFILES_DIR/scripts/symlinks.sh"
 
 # ---------------------------------------------------------------------------
-# 8. Neovim post-install (plugins + treesitter parsers)
+# 9. Neovim post-install (plugins + treesitter parsers)
 # ---------------------------------------------------------------------------
 if command -v nvim >/dev/null 2>&1; then
 	info "Syncing Neovim plugins (first run downloads them)..."
@@ -149,7 +161,7 @@ else
 fi
 
 # ---------------------------------------------------------------------------
-# 9. Health checks
+# 10. Health checks
 # ---------------------------------------------------------------------------
 info "Running health checks..."
 "$DOTFILES_DIR/scripts/doctor.sh" || DOCTOR_STATUS=$?
