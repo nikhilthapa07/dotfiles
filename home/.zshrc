@@ -23,3 +23,10 @@ alias lg='lazygit'
 
 # key mappings
 bindkey -s ^f "tmux-sessionizer\n"
+
+# PATH hygiene: keep only the first occurrence of each entry. The prepends
+# above (opencode/nvm/go/tmux-sessionizer) re-add entries that are usually
+# already inherited, and `export PATH=` doesn't honor typeset -U mid-flight —
+# so sweep once here, after all PATH changes. Also undoes duplicate
+# /opt/homebrew/bin from path_helper + `brew shellenv` across exec zsh.
+typeset -U path
