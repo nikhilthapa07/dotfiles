@@ -17,7 +17,9 @@ brew "git"
 brew "pnpm"
 brew "uv"
 brew "go"
-brew "python@3.12"
+# python: the alias always resolves to Homebrew's newest stable (currently
+# python@3.14). install.sh/doctor.sh enforce a >= 3.12 floor on PATH's python3.
+brew "python"
 # node is intentionally NOT here: it is managed by nvm via the zsh-nvm plugin.
 # LSP/format tooling trees:
 brew "tree-sitter"

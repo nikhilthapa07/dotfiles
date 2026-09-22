@@ -163,7 +163,9 @@ and `doctor.sh` reads the same file to verify it. Edit the Brewfile and the
 health check follows automatically.
 
 Required tools include: `neovim`, `tmux`, `git`, `pnpm`, `uv`, `go`,
-`python@3.12`, `tree-sitter(-cli)`, `fzf`, `fd`, `ripgrep`, `lazygit`, and
+`python` (Homebrew's alias for the latest stable release — `install.sh`
+installs it and `doctor.sh` enforces that `python3` on PATH is >= 3.12),
+`tree-sitter(-cli)`, `fzf`, `fd`, `ripgrep`, `lazygit`, and
 `zsh-autosuggestions`.
 
 ### kitty

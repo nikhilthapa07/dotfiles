@@ -113,6 +113,78 @@ info "Installing dependencies via Brewfile..."
 ok "Dependencies installed"
 
 # ---------------------------------------------------------------------------
+# 5b. Python — latest stable, hard floor 3.12
+# ---------------------------------------------------------------------------
+# "Latest stable" is read from Homebrew's `python` alias (local brew data),
+# so no version is hardcoded here. What matters is the python3 that PATH
+# resolves to — Apple's /usr/bin/python3 (3.9.x) must not be the answer.
+info "Checking Python (need >= 3.12, latest stable preferred)..."
+
+PY_MIN="3.12"
+
+py_mm() { # $1 = python binary -> "X.Y" ("" on failure)
+	"$1" -c 'import sys; print("%d.%d" % sys.version_info[:2])' 2>/dev/null || true
+}
+
+py_ge() { # $1 = have "X.Y", $2 = want "X.Y" -> success if have >= want
+	local hm="${1%%.*}" hv="${1##*.}" wm="${2%%.*}" wv="${2##*.}"
+	(( hm > wm )) || { (( hm == wm )) && (( hv >= wv )); }
+}
+
+latest_stable_mm() { # brew's newest stable python as "X.Y" ("" on failure)
+	brew info --json=v2 python 2>/dev/null |
+		grep -m1 '"stable"' |
+		sed -E 's/.*"([0-9]+\.[0-9]+)\.[0-9]+".*/\1/' || true
+}
+
+LATEST="$(latest_stable_mm)"
+PY3="$(command -v python3 || true)"
+CUR=""
+if [[ -n "$PY3" ]]; then CUR="$(py_mm "$PY3")"; fi
+
+needs_python=0
+if [[ -z "$CUR" ]]; then
+	needs_python=1 # python3 missing or unreadable
+elif ! py_ge "$CUR" "$PY_MIN"; then
+	needs_python=1 # below the floor (e.g. Apple's 3.9.x)
+elif [[ -n "$LATEST" ]] && ! py_ge "$CUR" "$LATEST"; then
+	needs_python=1 # usable, but older than Homebrew's latest stable
+fi
+
+if [[ "$needs_python" -eq 1 ]]; then
+	info "Installing Homebrew's latest stable Python (brew install python)..."
+	brew install python || warn "brew install python reported errors — verifying what we have..."
+fi
+
+# Repair the link if PATH still does not point at Homebrew's python3.
+if [[ "$needs_python" -eq 1 && "$(command -v python3 || true)" != "$BREW_PREFIX/bin/python3" ]]; then
+	brew link --overwrite python >/dev/null 2>&1 || true
+fi
+
+PY3="$(command -v python3 || true)"
+CUR=""
+if [[ -n "$PY3" ]]; then CUR="$(py_mm "$PY3")"; fi
+
+if [[ -z "$PY3" || -z "$CUR" ]]; then
+	fail "python3 not available after setup"
+	exit 1
+elif ! py_ge "$CUR" "$PY_MIN"; then
+	fail "python3 is $CUR ($PY3) — need >= $PY_MIN"
+	exit 1
+fi
+
+case "$PY3" in
+	"$BREW_PREFIX"/*) ;;
+	*) warn "python3 is $CUR at $PY3 — outside $BREW_PREFIX, so it can drift from brew's latest" ;;
+esac
+
+if [[ -n "$LATEST" ]] && ! py_ge "$CUR" "$LATEST"; then
+	warn "python3 is $CUR — latest stable is $LATEST (run: brew upgrade python)"
+else
+	ok "python3 $CUR at $PY3${LATEST:+ (latest stable $LATEST)}"
+fi
+
+# ---------------------------------------------------------------------------
 # 6. kitty (official installer — not Homebrew)
 # ---------------------------------------------------------------------------
 info "Ensuring kitty..."

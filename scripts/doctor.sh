@@ -41,6 +41,21 @@ else
 	FAIL "Homebrew not installed (or not in PATH)"
 fi
 
+# --- PATH ---------------------------------------------------------------------
+# Duplicate entries mean a directory is being injected twice — e.g. brew's
+# /opt/homebrew/bin by BOTH /etc/paths.d/homebrew (path_helper) and
+# `brew shellenv`. WARN only: duplicates don't break resolution, they just
+# shadow and grow with every `exec zsh`. (home/.zprofile and home/.zshrc
+# run `typeset -U path` to prevent this.)
+info "> PATH"
+path_entries="$(printf '%s' "$PATH" | tr ':' '\n' | grep -c .)"
+path_dups="$(printf '%s' "$PATH" | tr ':' '\n' | grep . | sort | uniq -d)"
+if [[ -n "$path_dups" ]]; then
+	warn "duplicate PATH entries (open a new terminal or run: typeset -U path): $(printf '%s' "$path_dups" | tr '\n' ' ')"
+else
+	ok "no duplicate PATH entries ($path_entries entries)"
+fi
+
 # --- Required formulas -------------------------------------------------------
 # Derived from the Brewfile (single source of truth): every uncommented
 # `brew "name"` line is required. Only the pkg->binary alias map below is
@@ -52,6 +67,7 @@ PKG_ALIASES=(
 	"neovim|nvim"
 	"ripgrep|rg"
 	"tree-sitter-cli|tree-sitter"
+	"python|python3"
 )
 bin_for() { # $1 = formula name -> binary to check (or '' for none)
 	local pkg="$1" entry
@@ -93,6 +109,51 @@ for bin in git go nvim tmux fzf fd rg lazygit tree-sitter; do
 		FAIL "$bin (not in PATH)"
 	fi
 done
+
+# --- Python ------------------------------------------------------------------
+# Requirement: the python3 that PATH resolves to must be >= 3.12; warn when
+# Homebrew's latest stable (the `python` alias) is newer, or when python3
+# resolves outside Homebrew. Read-only: `brew info` uses local cached data.
+info "> Python (need >= 3.12, latest stable preferred)"
+PY_MIN="3.12"
+
+py_mm() { # $1 = python binary -> "X.Y" ("" on failure)
+	"$1" -c 'import sys; print("%d.%d" % sys.version_info[:2])' 2>/dev/null || true
+}
+
+py_ge() { # $1 = have "X.Y", $2 = want "X.Y" -> success if have >= want
+	local hm="${1%%.*}" hv="${1##*.}" wm="${2%%.*}" wv="${2##*.}"
+	(( hm > wm )) || { (( hm == wm )) && (( hv >= wv )); }
+}
+
+latest_stable_mm() { # brew's newest stable python as "X.Y" ("" on failure)
+	brew info --json=v2 python 2>/dev/null |
+		grep -m1 '"stable"' |
+		sed -E 's/.*"([0-9]+\.[0-9]+)\.[0-9]+".*/\1/' || true
+}
+
+LATEST="$(latest_stable_mm)"
+PY3="$(command -v python3 || true)"
+CUR=""
+if [[ -n "$PY3" ]]; then CUR="$(py_mm "$PY3")"; fi
+
+if [[ -z "$PY3" || -z "$CUR" ]]; then
+	FAIL "python3 not found in PATH (run ./install.sh)"
+elif ! py_ge "$CUR" "$PY_MIN"; then
+	FAIL "python3 is $CUR ($PY3) — need >= $PY_MIN (run ./install.sh)"
+else
+	if [[ -n "$LATEST" ]] && ! py_ge "$CUR" "$LATEST"; then
+		warn "python3 $CUR ($PY3) — latest stable is $LATEST (brew install python)"
+	elif [[ -n "$LATEST" ]]; then
+		ok "python3 $CUR ($PY3) — latest stable is $LATEST"
+	else
+		ok "python3 $CUR ($PY3) — latest stable unknown (Homebrew not available)"
+	fi
+	case "$PY3" in
+		/opt/homebrew/*) ;;
+		*) warn "python3 resolves outside Homebrew ($PY3)" ;;
+	esac
+fi
 
 # --- Symlinks ---------------------------------------------------------------
 info "> Symlinks"
