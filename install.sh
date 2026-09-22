@@ -129,8 +129,8 @@ ok "kitty ready"
 # ---------------------------------------------------------------------------
 info "Ensuring opencode..."
 if [[ ! -x "$HOME/.opencode/bin/opencode" ]]; then
-	info "Installing opencode (official curl installer)..."
-	curl -fsSL https://opencode.ai/install | bash
+	info "Installing opencode (official v2 curl installer)..."
+	curl -fsSL https://opencode.ai/v2/install | bash -s -- --no-modify-path
 else
 	info "opencode already present: $("$HOME/.opencode/bin/opencode" --version 2>/dev/null)"
 fi

@@ -48,7 +48,7 @@ cd ~/dotfiles
 4. Installs oh-my-zsh and the plugin clones (`zsh-nvm`, `zsh-autosuggestions`).
 5. Installs all system dependencies from the `Brewfile` via `brew bundle`.
 6. Installs kitty via the official installer (not Homebrew).
-7. Installs opencode via the official script (if not already present).
+7. Installs opencode v2 via the official installer script (if not already present).
 8. Creates directories and symlinks all configs into `~`.
 9. Syncs Neovim plugins with lazy.nvim (first run downloads everything).
 10. Runs `doctor.sh` and prints a summary.
@@ -190,8 +190,9 @@ nvm install --lts
 
 ### opencode
 
-`opencode` is installed via the official script to `~/.opencode/bin` (not the
-Brewfile — keeps a single install method so `opencode upgrade` keeps working).
+`opencode` is installed via the official v2 installer script to `~/.opencode/bin`
+(not the Brewfile — keeps a single install method so `opencode upgrade` keeps
+working).
 `.zshrc` already adds it to `PATH`. Update it any time with:
 
 ```bash
