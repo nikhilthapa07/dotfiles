@@ -219,21 +219,89 @@ info "Linking dotfiles..."
 "$DOTFILES_DIR/scripts/symlinks.sh"
 
 # ---------------------------------------------------------------------------
-# 9. Neovim post-install (plugins + treesitter parsers)
+# 9. Node.js via nvm (required by Mason's npm packages)
+# ---------------------------------------------------------------------------
+# node is intentionally not in the Brewfile: it is managed by nvm through the
+# zsh-nvm oh-my-zsh plugin, which installs nvm itself on the first shell that
+# loads the newly symlinked .zshrc.
+info "Ensuring Node.js (needed by Mason's npm packages)..."
+
+export NVM_DIR="${NVM_DIR:-$HOME/.nvm}"
+
+if [[ ! -s "$NVM_DIR/nvm.sh" ]]; then
+	info "Bootstrapping nvm via zsh-nvm..."
+	zsh -ic 'true' >/dev/null 2>&1 || true
+fi
+
+# nvm is a shell function; sourcing it also puts the default node on PATH.
+if [[ -s "$NVM_DIR/nvm.sh" ]]; then
+	# shellcheck disable=SC1091
+	. "$NVM_DIR/nvm.sh"
+fi
+
+if command -v nvm >/dev/null 2>&1 && ! command -v node >/dev/null 2>&1; then
+	info "Installing Node LTS via nvm..."
+	nvm install --lts || warn "nvm install --lts reported errors"
+	nvm use --lts >/dev/null 2>&1 || true
+fi
+
+if command -v node >/dev/null 2>&1; then
+	ok "node $(node --version)"
+else
+	warn "node missing — npm-based Mason tools cannot install until nvm is set up"
+fi
+
+# ---------------------------------------------------------------------------
+# 10. Neovim post-install (plugins + Mason tools + treesitter parsers)
 # ---------------------------------------------------------------------------
 if command -v nvim >/dev/null 2>&1; then
-	info "Syncing Neovim plugins (first run downloads them)..."
-	if nvim --headless "+Lazy! sync" +qa >/dev/null 2>&1; then
-		ok "Neovim plugins synced"
+	NVIM_VERSION="$(nvim --version | head -1)"
+	NVIM_MM="$(printf '%s\n' "$NVIM_VERSION" | sed -nE 's/^NVIM v?([0-9]+)\.([0-9]+).*/\1 \2/p')"
+	NVIM_MAJOR=0
+	NVIM_MINOR=0
+	if [[ -n "$NVIM_MM" ]]; then
+		read -r NVIM_MAJOR NVIM_MINOR <<<"$NVIM_MM"
+	fi
+
+	if (( NVIM_MAJOR > 0 || NVIM_MINOR >= 12 )); then
+		ok "Neovim >= 0.12 ($NVIM_VERSION)"
 	else
-		warn "Neovim plugin sync had issues — run 'nvim +Lazy sync' manually."
+		fail "Neovim >= 0.12 required (found: $NVIM_VERSION) — vim.pack is unavailable"
+		fail "Upgrade with: brew upgrade neovim"
+		exit 1
+	fi
+
+	info "Installing Neovim plugins and Mason tools (first run downloads them)..."
+	nvim --headless "+MasonToolsInstallSync" +qa >/dev/null 2>&1 || true
+
+	# `nvim` exits 0 even when init.lua throws, and Mason keeps going after a
+	# failed package, so verify what actually landed on disk.
+	PACK_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/nvim/site/pack/core/opt"
+	MASON_BIN="${XDG_DATA_HOME:-$HOME/.local/share}/nvim/mason/bin"
+	NVIM_MISSING=()
+
+	if [[ -z "$(ls -A "$PACK_DIR" 2>/dev/null)" ]]; then
+		NVIM_MISSING+=("plugins")
+	fi
+	for bin in stylua prettier ruff isort pyright-langserver vtsls clangd gopls \
+		lua-language-server vue-language-server vscode-json-language-server \
+		vscode-html-language-server vscode-css-language-server \
+		tailwindcss-language-server emmet-language-server vim-language-server; do
+		[[ -x "$MASON_BIN/$bin" ]] || NVIM_MISSING+=("$bin")
+	done
+
+	if [[ "${#NVIM_MISSING[@]}" -eq 0 ]]; then
+		ok "Neovim plugins and Mason tools ready"
+	else
+		fail "Neovim setup incomplete — missing: ${NVIM_MISSING[*]}"
+		fail "Make sure node/npm works, then open 'nvim' and run :MasonToolsInstall"
 	fi
 else
 	warn "'nvim' not found in PATH — install it and re-run install.sh"
 fi
 
 # ---------------------------------------------------------------------------
-# 10. Health checks
+# 11. Health checks
 # ---------------------------------------------------------------------------
 info "Running health checks..."
 "$DOTFILES_DIR/scripts/doctor.sh" || DOCTOR_STATUS=$?
@@ -242,7 +310,6 @@ echo
 if [[ "${DOCTOR_STATUS:-0}" -eq 0 ]]; then
 	ok "Setup complete."
 	echo "Open a new terminal window (or run: exec zsh) for changes to take effect."
-	echo "On a fresh machine: nvm install --lts   (zsh-nvm only installs nvm itself)"
 else
 	fail "Setup finished with errors — review the [FAIL] lines above, fix them, then re-run ./install.sh"
 	exit 1

@@ -2,6 +2,9 @@
 #
 # doctor.sh — verify the environment WITHOUT modifying anything.
 #
+# Note: the Neovim check starts `nvim`, so a first run may finish pending
+# plugin installs (vim.pack installs missing plugins at startup).
+#
 #   bash scripts/doctor.sh
 #
 # Exit status: 0 = no failures, 1 = one or more [FAIL] checks.
@@ -187,10 +190,44 @@ done
 # --- Neovim config ----------------------------------------------------------
 info "> Neovim config"
 if command -v nvim >/dev/null 2>&1; then
-	if nvim --headless +qa 2>/dev/null; then
-		ok "nvim loads config cleanly ($(nvim --version | head -1))"
+	NVIM_VER="$(nvim --version | head -1)"
+	NVIM_MM="$(printf '%s\n' "$NVIM_VER" | sed -nE 's/^NVIM v?([0-9]+)\.([0-9]+).*/\1 \2/p')"
+	NVIM_MAJOR=0
+	NVIM_MINOR=0
+	if [[ -n "$NVIM_MM" ]]; then
+		read -r NVIM_MAJOR NVIM_MINOR <<<"$NVIM_MM"
+	fi
+
+	if (( NVIM_MAJOR > 0 || NVIM_MINOR >= 12 )); then
+		ok "nvim >= 0.12 ($NVIM_VER)"
+
+		# `nvim` exits 0 even when init.lua throws, so force a non-zero exit
+		# when no plugins are present and scan the output for Lua errors.
+		nvim_rc=0
+		nvim_out="$(nvim --headless "+lua if #vim.pack.get() < 1 then vim.cmd('cquit 1') end" +qa 2>&1)" || nvim_rc=$?
+		if (( nvim_rc != 0 )); then
+			FAIL "nvim loaded no plugins — run ./install.sh, then retry"
+		elif grep -qE 'E5113|E5108|Error in .*init\.lua' <<<"$nvim_out"; then
+			FAIL "nvim config errors: $(printf '%s' "$nvim_out" | head -3 | tr '\n' ' ')"
+		else
+			ok "nvim loads config cleanly"
+		fi
+
+		MASON_BIN="${XDG_DATA_HOME:-$HOME_DIR/.local/share}/nvim/mason/bin"
+		missing=()
+		for bin in stylua prettier ruff isort pyright-langserver vtsls clangd gopls \
+			lua-language-server vue-language-server vscode-json-language-server \
+			vscode-html-language-server vscode-css-language-server \
+			tailwindcss-language-server emmet-language-server vim-language-server; do
+			[[ -x "$MASON_BIN/$bin" ]] || missing+=("$bin")
+		done
+		if (( ${#missing[@]} == 0 )); then
+			ok "Mason tools installed ($MASON_BIN)"
+		else
+			FAIL "Mason tools missing: ${missing[*]} (run ./install.sh)"
+		fi
 	else
-		FAIL "nvim failed to start with the current config"
+		FAIL "nvim >= 0.12 required (found: $NVIM_VER) — vim.pack is unavailable"
 	fi
 else
 	FAIL "nvim not installed"
