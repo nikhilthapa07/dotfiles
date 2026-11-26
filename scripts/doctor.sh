@@ -3,7 +3,7 @@
 # doctor.sh — verify the environment WITHOUT modifying anything.
 #
 # Note: the Neovim check starts `nvim`, so a first run may finish pending
-# plugin installs (vim.pack installs missing plugins at startup).
+# plugin installs (lazy.nvim installs missing plugins at startup).
 #
 #   bash scripts/doctor.sh
 #
@@ -201,16 +201,20 @@ if command -v nvim >/dev/null 2>&1; then
 	if (( NVIM_MAJOR > 0 || NVIM_MINOR >= 12 )); then
 		ok "nvim >= 0.12 ($NVIM_VER)"
 
-		# `nvim` exits 0 even when init.lua throws, so force a non-zero exit
-		# when no plugins are present and scan the output for Lua errors.
+		# `nvim` exits 0 even when init.lua throws, so scan the output for Lua
+		# errors and count the plugins lazy.nvim actually cloned to disk.
+		LAZY_DIR="${XDG_DATA_HOME:-$HOME_DIR/.local/share}/nvim/lazy"
 		nvim_rc=0
-		nvim_out="$(nvim --headless "+lua if #vim.pack.get() < 1 then vim.cmd('cquit 1') end" +qa 2>&1)" || nvim_rc=$?
+		nvim_out="$(nvim --headless +qa 2>&1)" || nvim_rc=$?
+		plugin_count="$(find "$LAZY_DIR" -mindepth 1 -maxdepth 1 -type d 2>/dev/null | wc -l | tr -d ' ')"
 		if (( nvim_rc != 0 )); then
-			FAIL "nvim loaded no plugins — run ./install.sh, then retry"
+			FAIL "nvim failed to start (exit $nvim_rc)"
+		elif (( plugin_count < 2 )); then
+			FAIL "nvim loaded no plugins (only lazy.nvim in $LAZY_DIR) — run ./install.sh, then retry"
 		elif grep -qE 'E5113|E5108|Error in .*init\.lua' <<<"$nvim_out"; then
 			FAIL "nvim config errors: $(printf '%s' "$nvim_out" | head -3 | tr '\n' ' ')"
 		else
-			ok "nvim loads config cleanly"
+			ok "nvim loads config cleanly ($plugin_count plugins)"
 		fi
 
 		MASON_BIN="${XDG_DATA_HOME:-$HOME_DIR/.local/share}/nvim/mason/bin"
@@ -227,7 +231,7 @@ if command -v nvim >/dev/null 2>&1; then
 			FAIL "Mason tools missing: ${missing[*]} (run ./install.sh)"
 		fi
 	else
-		FAIL "nvim >= 0.12 required (found: $NVIM_VER) — vim.pack is unavailable"
+		FAIL "nvim >= 0.12 required (found: $NVIM_VER)"
 	fi
 else
 	FAIL "nvim not installed"

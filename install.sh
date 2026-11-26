@@ -266,21 +266,23 @@ if command -v nvim >/dev/null 2>&1; then
 	if (( NVIM_MAJOR > 0 || NVIM_MINOR >= 12 )); then
 		ok "Neovim >= 0.12 ($NVIM_VERSION)"
 	else
-		fail "Neovim >= 0.12 required (found: $NVIM_VERSION) — vim.pack is unavailable"
+		fail "Neovim >= 0.12 required (found: $NVIM_VERSION)"
 		fail "Upgrade with: brew upgrade neovim"
 		exit 1
 	fi
 
 	info "Installing Neovim plugins and Mason tools (first run downloads them)..."
+	nvim --headless "+Lazy! sync" +qa >/dev/null 2>&1 || true
 	nvim --headless "+MasonToolsInstallSync" +qa >/dev/null 2>&1 || true
 
 	# `nvim` exits 0 even when init.lua throws, and Mason keeps going after a
 	# failed package, so verify what actually landed on disk.
-	PACK_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/nvim/site/pack/core/opt"
+	LAZY_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/nvim/lazy"
 	MASON_BIN="${XDG_DATA_HOME:-$HOME/.local/share}/nvim/mason/bin"
 	NVIM_MISSING=()
 
-	if [[ -z "$(ls -A "$PACK_DIR" 2>/dev/null)" ]]; then
+	# lazy.nvim itself lives in LAZY_DIR, so < 2 dirs means no real plugins.
+	if (( $(find "$LAZY_DIR" -mindepth 1 -maxdepth 1 -type d 2>/dev/null | wc -l) < 2 )); then
 		NVIM_MISSING+=("plugins")
 	fi
 	for bin in stylua prettier ruff isort pyright-langserver vtsls clangd gopls \
