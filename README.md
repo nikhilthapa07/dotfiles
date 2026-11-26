@@ -50,8 +50,9 @@ cd ~/dotfiles
 6. Installs kitty via the official installer (not Homebrew).
 7. Installs opencode v2 via the official installer script (if not already present).
 8. Creates directories and symlinks all configs into `~`.
-9. Syncs Neovim plugins with lazy.nvim (first run downloads everything).
-10. Runs `doctor.sh` and prints a summary.
+9. Ensures Node.js LTS via nvm (bootstrapped on first shell by `zsh-nvm`).
+10. Installs Neovim plugins (lazy.nvim) and Mason tools (mason-tool-installer) — first run downloads everything.
+11. Runs `doctor.sh` and prints a summary.
 
 It is fully idempotent — run it as many times as you like.
 
@@ -127,7 +128,7 @@ most take effect immediately (after a reload):
 |------|-----------------|--------|
 | Shell | `home/.zshrc`, `home/.zprofile`, `home/.zshenv` | `exec zsh` (or new terminal) |
 | Neovim config | `config/nvim/init.lua`, `config/nvim/lua/**` | restart nvim |
-| Neovim plugins | `config/nvim/lua/plugins/*.lua` (+ `lazy-lock.json`) | `nvim +Lazy sync` |
+| Neovim plugins | `config/nvim/lua/plugins/*.lua` (+ `lazy-lock.json`) | `:Lazy update` |
 | Kitty | `config/kitty/kitty.conf`, `config/kitty/current-theme.conf` | hot-reloads on save |
 | tmux | `tmux/tmux.conf` | `tmux source-file ~/.config/tmux/tmux.conf` |
 | Git identity | `git/.gitconfig` | applies on next git command |
@@ -141,13 +142,19 @@ list in `scripts/symlinks.sh`).
 
 Neovim specifics:
 
-- **Add a plugin**: create a file in `config/nvim/lua/plugins/` following the
-  existing patterns, restart nvim (Lazy installs it), then commit
-  `lazy-lock.json` too so plugin versions stay reproducible.
+- **Add a plugin**: create `config/nvim/lua/plugins/<name>.lua` returning a
+  lazy.nvim spec table (e.g. `{ "owner/repo", config = function() ... end }`).
+  The whole `plugins/` directory is imported by `config/nvim/lua/lazy_init.lua`,
+  so no registration is needed — restart nvim and the plugin is cloned on
+  startup. Commit `lazy-lock.json` too so versions stay reproducible.
+- **Update plugins**: `:Lazy update` — review, then `:write` to apply (or
+  `:quit` to discard). `:restart` to load the new code.
 - **Change keymaps/options/autocommands**: edit the matching file under
   `config/nvim/lua/` and restart nvim.
-- **LSP servers** are installed by Mason on first launch (`auto_install`) — not
-  tracked in git, nothing to commit.
+- **LSP servers and formatters** are installed automatically by
+  `mason-tool-installer` (`config/nvim/lua/plugins/mason.lua`). Manage them with
+  `:Mason`, `:MasonToolsUpdate` and `:MasonToolsClean`. Not tracked in git,
+  nothing to commit.
 
 Validate any change with:
 
@@ -184,11 +191,10 @@ Re-run that command to update kitty.
 Node is **not** installed by Homebrew. It is managed by **nvm** through the
 `zsh-nvm` oh-my-zsh plugin, which installs nvm itself on first shell.
 
-After the first install, run once per machine:
-
-```bash
-nvm install --lts
-```
+`install.sh` bootstraps nvm (via a `zsh -i` shell load) and runs
+`nvm install --lts` before the Neovim step, so Mason's npm-based LSP servers
+and formatters can be installed in the same run. Run `nvm install --lts`
+manually only if you skipped the installer.
 
 ### opencode
 
@@ -214,9 +220,13 @@ LLM provider.
 
 ## Neovim
 
-`config/nvim/` is a standard lazy.nvim setup. Plugins, treesitter parsers and
-Mason LSP servers are all installed by Neovim itself (lazy.nvim auto-clones,
-treesitter compiles parsers, `mason` with `auto_install` handles LSPs).
+`config/nvim/` uses [lazy.nvim](https://github.com/folke/lazy.nvim) as its plugin
+manager (bootstrapped by `config/nvim/lua/lazy_init.lua`). Plugins are cloned
+into `~/.local/share/nvim/lazy` on first launch, treesitter compiles parsers, and
+`mason-tool-installer` installs LSP servers and formatters (see
+`config/nvim/lua/plugins/mason-tool-installer.lua`). `install.sh` refuses to
+continue with Neovim < 0.12 and verifies that plugins and Mason tools landed on
+disk.
 
 `lazy-lock.json` is committed so plugin versions stay reproducible.
 
@@ -248,15 +258,15 @@ Run the read-only health check any time:
 ```
 
 Shows `[OK]` / `[WARN]` / `[FAIL]` for architecture, Homebrew, required
-formulas (derived from the `Brewfile`), required binaries, symlinks, Neovim,
-tmux, Kitty, Zsh, Node, and opencode.
+formulas (derived from the `Brewfile`), required binaries, symlinks, Neovim
+(version, config load, Mason tools), tmux, Kitty, Zsh, Node, and opencode.
 Exits non-zero if any check fails.
 
 ## Manual steps (can't be automated)
 
-- `nvm install --lts` once per machine (as above).
 - Install Rust with rustup if you need it: `curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh`.
 - Non-Homebrew GUI apps (Docker, Chrome, Slack, Postman, etc.).
 - SSH keys: `ssh-keygen` / copy from another machine to `~/.ssh`.
 - macOS System Settings, keyboard/trackpad preferences.
-- First `nvim` launch may ask to install Mason LSP servers (auto).
+- If `install.sh` warns about missing Mason tools, make sure `node` works and
+  run `:MasonToolsInstall` once inside Neovim.
